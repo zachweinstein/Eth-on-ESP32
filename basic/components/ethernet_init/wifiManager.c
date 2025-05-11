@@ -24,10 +24,8 @@ extern EventGroupHandle_t g_network_event_group;
 #define WIFI_CONNECTED_BIT BIT0
 #define WIFI_FAIL_BIT BIT1
 
-static const int WIFI_RETRY_ATTEMPT = 3;
-static int wifi_retry_count = 0;
-
-static esp_netif_t *tutorial_netif = NULL;
+extern char event_status[64];
+static esp_netif_t *wifi_netif = NULL;
 static esp_event_handler_instance_t ip_event_handler;
 static esp_event_handler_instance_t wifi_event_handler;
 
@@ -35,7 +33,7 @@ static char* wifi_ssid = "HartwickHome";
 static char* wifi_password = "sahat123";
 static EventGroupHandle_t s_wifi_event_group = NULL;
 
-static char* TAG = "myWifi";
+static char* TAG = "wifiManager";
 
 void ip_event_cb(void *arg, esp_event_base_t event_base, int32_t event_id, void *event_data)
 {
@@ -45,7 +43,6 @@ void ip_event_cb(void *arg, esp_event_base_t event_base, int32_t event_id, void 
     case (IP_EVENT_STA_GOT_IP):
         ip_event_got_ip_t *event_ip = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(TAG, "Got IP: " IPSTR, IP2STR(&event_ip->ip_info.ip));
-        wifi_retry_count = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
         break;
     case (IP_EVENT_STA_LOST_IP):
@@ -54,7 +51,6 @@ void ip_event_cb(void *arg, esp_event_base_t event_base, int32_t event_id, void 
     case (IP_EVENT_GOT_IP6):
         ip_event_got_ip6_t *event_ip6 = (ip_event_got_ip6_t *)event_data;
         ESP_LOGI(TAG, "Got IPv6: " IPV6STR, IPV62STR(event_ip6->ip6_info.ip));
-        wifi_retry_count = 0;
         xEventGroupSetBits(s_wifi_event_group, WIFI_CONNECTED_BIT);
         break;
     default:
@@ -69,12 +65,6 @@ void wifi_event_cb(void *arg, esp_event_base_t event_base, int32_t event_id, voi
 
     switch (event_id)
     {
-    case (WIFI_EVENT_WIFI_READY):
-        ESP_LOGI(TAG, "Wi-Fi ready");
-        break;
-    case (WIFI_EVENT_SCAN_DONE):
-        ESP_LOGI(TAG, "Wi-Fi scan done");
-        break;
     case (WIFI_EVENT_STA_START):
         ESP_LOGI(TAG, "Wi-Fi started, connecting to AP...");
         esp_wifi_connect();
@@ -87,17 +77,14 @@ void wifi_event_cb(void *arg, esp_event_base_t event_base, int32_t event_id, voi
         break;
     case (WIFI_EVENT_STA_DISCONNECTED):
         ESP_LOGI(TAG, "Wi-Fi disconnected");
-        if (wifi_retry_count < WIFI_RETRY_ATTEMPT) {
-            ESP_LOGI(TAG, "Retrying to connect to Wi-Fi network...");
-            esp_wifi_connect();
-            wifi_retry_count++;
-        } else {
-            ESP_LOGI(TAG, "Failed to connect to Wi-Fi network");
-            xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
-        }
-        break;
-    case (WIFI_EVENT_STA_AUTHMODE_CHANGE):
-        ESP_LOGI(TAG, "Wi-Fi authmode changed");
+//        if (wifi_retry_count < WIFI_RETRY_ATTEMPT) {
+//            ESP_LOGI(TAG, "Retrying to connect to Wi-Fi network...");
+//            esp_wifi_connect();
+//            wifi_retry_count++;
+//        } else {
+//            ESP_LOGI(TAG, "Failed to connect to Wi-Fi network");
+//            xEventGroupSetBits(s_wifi_event_group, WIFI_FAIL_BIT);
+//        }
         break;
     default:
         ESP_LOGI(TAG, "Wi-Fi event not handled");
@@ -124,17 +111,17 @@ static esp_err_t init_state_handler(void){
         return ret;
     }
 
-    tutorial_netif = esp_netif_create_default_wifi_sta();
-    if (tutorial_netif == NULL) {
+    wifi_netif = esp_netif_create_default_wifi_sta();
+    if (wifi_netif == NULL) {
         ESP_LOGE(TAG, "Failed to create default WiFi STA interface");
         return ESP_FAIL;
     }
-    ESP_ERROR_CHECK(esp_netif_dhcpc_stop(tutorial_netif)); // Stop DHCP for Wi-Fi
+    ESP_ERROR_CHECK(esp_netif_dhcpc_stop(wifi_netif)); // Stop DHCP for Wi-Fi
     esp_netif_ip_info_t ip_info;
     ip_info.ip.addr = esp_ip4addr_aton("10.0.0.124");
     ip_info.gw.addr = esp_ip4addr_aton("10.0.0.1");
     ip_info.netmask.addr = esp_ip4addr_aton("255.255.255.0");
-    ESP_ERROR_CHECK(esp_netif_set_ip_info(tutorial_netif, &ip_info));
+    ESP_ERROR_CHECK(esp_netif_set_ip_info(wifi_netif, &ip_info));
 
     // Wi-Fi stack configuration parameters
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
@@ -178,6 +165,7 @@ static esp_err_t run_state_handler(void){
     
         if (bits & WIFI_CONNECTED_BIT) {
             ESP_LOGI(TAG, "Connected to Wi-Fi network: ");
+            strcpy(event_status, "Wifi Connected");
             return ESP_OK;
         } else if (bits & WIFI_FAIL_BIT) {
             ESP_LOGE(TAG, "Failed to connect to Wi-Fi network: ");
@@ -221,8 +209,8 @@ static esp_err_t run_state_handler(void){
 static esp_err_t reset_state_handler(void){
 
     ESP_ERROR_CHECK(esp_wifi_deinit());
-    ESP_ERROR_CHECK(esp_wifi_clear_default_wifi_driver_and_handlers(tutorial_netif));
-    esp_netif_destroy(tutorial_netif);
+    ESP_ERROR_CHECK(esp_wifi_clear_default_wifi_driver_and_handlers(wifi_netif));
+    esp_netif_destroy(wifi_netif);
     return ESP_OK;
 
 }

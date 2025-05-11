@@ -36,9 +36,9 @@ extern esp_err_t ready_eth_state_handler(void);
 void manual_switcher(void* pv){
     int count = 0;
     while(count < 1){
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(100));
         xEventGroupSetBits(g_network_event_group,WIFI_MODE);
-        vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 10 second
+        //vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 10 second
         //xEventGroupSetBits(g_network_event_group, ETH_MODE);
         vTaskDelay(pdMS_TO_TICKS(10000000));
         count++;
@@ -57,8 +57,8 @@ void network_task(){
     ESP_ERROR_CHECK(esp_event_loop_create_default());
 
     // start the eth driver
-    init_eth_state_handler();
-    ready_eth_state_handler();
+    //init_eth_state_handler();
+    //ready_eth_state_handler();
     
 
 
@@ -87,14 +87,14 @@ void network_task(){
                                            pdTRUE, pdFALSE, portMAX_DELAY
                                           );
 
-    if (bits & WIFI_MODE){
-        ESP_LOGE("n/w","WifI mode Activated");
-        requestedMode = WIFI;
-    }
-    else if (bits & ETH_MODE)
+    if (bits & ETH_MODE)
     {
         ESP_LOGE("n/w","Eth mode Activated");
         requestedMode = ETH;
+    }
+    else{
+        ESP_LOGE("n/w","WifI mode Activated");
+        requestedMode = WIFI;
     }
 
     if ( currentMode != requestedMode){

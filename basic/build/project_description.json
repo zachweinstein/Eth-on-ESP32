@@ -1,7 +1,7 @@
 {
     "version":            "1.1",
     "project_name":       "ethernet_basic",
-    "project_version":    "1",
+    "project_version":    "6ced60a-dirty",
     "project_path":       "C:/Uni/Classes/ENPM818J/project/New folder/basic",
     "idf_path":           "C:/Users/karth/esp/v5.4/esp-idf",
     "build_dir":          "C:/Uni/Classes/ENPM818J/project/New folder/basic/build",
@@ -1045,7 +1045,7 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "C:/Uni/Classes/ENPM818J/project/New folder/basic/build/esp-idf/ethernet_init/libethernet_init.a",
-            "sources": [ "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/ethernet_init.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/myWifi.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/wifiHandler.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/web_server.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/network_manager.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/myEth.c" ],
+            "sources": [ "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/wifiManager.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/ethManager.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/ethernet_init.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/wifiHandler.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/web_server.c", "C:/Uni/Classes/ENPM818J/project/New folder/basic/components/ethernet_init/network_manager.c" ],
             "include_dirs": [ "." ]
         },
         "fatfs": {
